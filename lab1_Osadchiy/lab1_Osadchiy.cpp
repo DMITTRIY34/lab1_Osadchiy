@@ -1,6 +1,8 @@
 ﻿#include <iostream>
 #include <limits>
 #include <string>
+#include <fstream>
+
 
 using namespace std;
 
@@ -303,7 +305,7 @@ void changeKs(Ks& ks) {
             string newClass;
             cout << "Введите новый класс станции: ";
             cin >> newClass;
-            ks.name = newClass;
+            ks.other = newClass;
             break;
         }
         case 6:
@@ -312,6 +314,78 @@ void changeKs(Ks& ks) {
             return;
         }
         }
+    }
+}
+
+void saveToFile(const Pipe& pipe, const Ks& ks, const string& filename = "file.txt") {
+    ofstream file(filename);
+
+    if (file.is_open()) {
+        // Сохраняем данные для трубы
+        file << "PIPE" << endl;
+        file << pipe.name << endl;
+        file << pipe.length << endl;
+        file << pipe.diameter << endl;
+        file << pipe.inRepair << endl;
+
+        // Сохраняем данные КС
+        file << "KS" << endl;
+        file << ks.name << endl;
+        file << ks.countWorkshop << endl;
+        file << ks.countWorkshopInWork << endl;
+        file << ks.other << endl;
+
+        file.close();
+        cout << "Данные были успешно сохранены в файл под названием'" << filename << "'!\n" << endl;
+    }
+    else {
+        cout << "Ошибка в открытии файла для записи!\n" << endl;
+    }
+}
+
+
+bool loadFromFile(Pipe& pipe, Ks& ks, const string& filename = "file.txt") {
+    ifstream file(filename);
+
+    if (file.is_open()) {
+        string line;
+
+        getline(file, line);
+        if (line != "PIPE") {
+            cout << "Файл был изменён!\n" << endl;
+            file.close();
+            return false;
+        }
+
+        // Читаем данные трубы
+        getline(file, pipe.name);
+        file >> pipe.length;
+        file >> pipe.diameter;
+        file >> pipe.inRepair;
+        file.ignore(); // пропускаем символ новой строки
+
+        // Проверяем формат файла - КС
+        getline(file, line);
+        if (line != "KS") {
+            cout << "Файл был изменён!\n" << endl;
+            file.close();
+            return false;
+        }
+
+        // Читаем данные КС
+        getline(file, ks.name);
+        file >> ks.countWorkshop;
+        file >> ks.countWorkshopInWork;
+        file.ignore(); // пропускаем символ новой строки
+        getline(file, ks.other);
+
+        file.close();
+        cout << "Данные успешно загружены из файла '" << filename << "'!\n" << endl;
+        return true;
+    }
+    else {
+        cout << "Файл '" << filename << "' не найден!\n" << endl;
+        return false;
     }
 }
 
@@ -377,17 +451,26 @@ void menu(Pipe& pipe, Ks& ks) {
         }
         case 6:
         {
-
+            if (pipe_existence or ks_existence) {
+                saveToFile(pipe, ks);
+            }
+            else {
+                cout << "Нет данных для сохранения!\n" << endl;
+            }
             break;
         }
         case 7:
         {
-
+            if (loadFromFile(pipe, ks)) {
+                pipe_existence = (pipe.diameter > 0);
+                ks_existence = (ks.countWorkshop > 0);
+                cout << "Данные загружены успешно!\n" << endl;
+            }
             break;
         }
         case 8:
         {
-            cout << "Выход из программы!";
+            cout << "Выход из программы!\n";
             return;
         }
         default:
