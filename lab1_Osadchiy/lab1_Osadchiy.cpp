@@ -1,6 +1,6 @@
 ﻿#include <iostream>
 #include <limits>
-
+#include <string>
 
 using namespace std;
 
@@ -21,7 +21,7 @@ struct Ks
     string other; // класс станции
 };
 
-int InputInt() {
+int inputInt() {
     int num;
     while (true) {
         cin >> num;
@@ -32,12 +32,13 @@ int InputInt() {
             cout << "Ввод: ";
         }
         else {
+            cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
             return num;
         }
     }
 }
 
-float InputFloat() {
+float inputFloat() {
     float num;
     while (true) {
         cin >> num;
@@ -48,17 +49,132 @@ float InputFloat() {
             cout << "Ввод: ";
         }
         else {
+            cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
             return num;
         }
     }
 }
 
-void menu() {
-    setlocale(LC_ALL, "Russian");
+Pipe addPipe() {
+    Pipe P;
+
+    cout << "Введите название трубы: ";
+    getline(cin, P.name, '\n');
+    cout << "Введите длину трубы (в км): ";
+    P.length = inputFloat();
+    cout << "Введите диаметр трубы (в мм): ";
+    P.diameter = inputInt();
+    cout << "Труба в ремонте? (1 если нет и 0 если в ремонте): ";
+    
+    int repair;
+    while (true) {
+        cin >> repair;
+        if (cin.fail() or (repair != 0 and repair != 1)) {
+            cin.clear();
+            cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+            cout << "Вы ввели некорректные данные. Попробуйте ещё раз!" << endl;
+            cout << "Труба в ремонте? (1 если нет и 0 если в ремонте): ";
+        }
+        else {
+            P.inRepair = repair;
+            break;
+        }
+    }
+    
+    return P;
+}
+
+Ks addKs() {
+    Ks K;
+
+    cout << "Введите название КС: ";
+    getline(cin, K.name, '\n');
+    cout << "Введите количество цехов: ";
+    K.countWorkshop = inputInt();
+    cout << "Введите количество цехов в работе: ";
+    K.countWorkshopInWork = inputInt();
+    while (true) {
+        if (K.countWorkshopInWork > K.countWorkshop) {
+            cout << "Количество цехов в работе не может быть больше количества цехов. Попробуйте ещё раз!" << endl;
+            K.countWorkshopInWork = inputInt();
+        }
+        else break;
+    }
+    cout << "Введите класс станции (некий показатель, обобщающий различные специфические характеристики): ";
+    cin >> K.other;
+    return K;
+}
+
+void showPipe(Pipe& pipe) {
+    cout << "Название трубы: " << pipe.name << endl;
+    cout << "Длина трубы: " << pipe.length << " км." << endl;
+    cout << "Диаметер трубы: " << pipe.diameter << " мм." << endl;
+    cout << "Труба в ремонте: " << (pipe.inRepair ? "Да" : "Нет") << endl;
+    cout << "-----------------------" << endl;
+}
+
+void showKs(Ks& ks) {
+    cout << "Название КС: " << ks.name << endl;
+    cout << "Количество цехов: " << ks.countWorkshop << endl;
+    cout << "Количество цехов в работе: " << ks.countWorkshopInWork << endl;
+    cout << "Класс станции: " << ks.other << endl;
+    cout << "-----------------------" << endl;
+}
+
+void showAll(Pipe& pipe, Ks& ks) {
+    int choice;
+
+    cout << "Выберите что хотите просмотреть(1 - труба, 2 - кс, 3 - все): ";
+    choice = inputInt();
+
+    while (true) {
+        if (choice > 3) {
+            cout << "Попробуйте выбрать ещё раз: ";
+            choice = inputInt();
+        }
+        else break;
+    }
+    switch (choice) {
+    case 1:
+    {
+        if (pipe.diameter > 0) {
+            showPipe(pipe);
+        }
+        else {
+            cout << "Труба ещё не создана" << endl;
+            break;
+        }
+    }
+    case 2:
+    {
+        if (ks.countWorkshop > 0) {
+            showKs(ks);
+        }
+        else {
+            cout << "КС ещё не создана" << endl;
+            break;
+        }
+    }
+    case 3:
+    {
+        if (pipe.diameter > 0 and ks.countWorkshop > 0) {
+            showPipe(pipe);
+            showKs(ks);
+        }
+        else {
+            cout << "У вас отстутсвует труба или КС. Попробуйте просмотреть что-то одно" << endl;
+            break;
+        }
+    }
+    }
+}
+
+void menu(Pipe pipe, Ks ks) {
+    bool pipe_existence = false;
+    bool ks_existence = false;
+    int number;
     while (true)
     {
-        int number;
-
         cout << "1. Добавить трубу" << endl;
         cout << "2. Добавить КС" << endl;
         cout << "3. Просмотр всех объектов" << endl;
@@ -69,22 +185,26 @@ void menu() {
         cout << "8. Выход" << endl;
         cout << "Выберите действие: ";
 
-        number = InputInt();
-
+        number = inputInt();
+        
         switch (number) {
         case 1:
         {
-
+            pipe = addPipe();
+            pipe_existence = true;
+            cout << "Труба '" << pipe.name << "' была успешно добавлена!" << endl;
             break;
         }
         case 2:
         {
-
+            ks = addKs();
+            ks_existence = true;
+            cout << "Компрессорная станция '" << ks.name << "' была успешно добавлена!" << endl;
             break;
         }
         case 3:
         {
-
+            showAll(pipe,ks);
             break;
         }
         case 4:
@@ -107,9 +227,10 @@ void menu() {
 
             break;
         }
-        case 0:
+        case 8:
         {
             cout << "Выход из программы!";
+            return;
         }
         default:
             cout << "Попробуйте ввести ещё раз, такого числа нет!\n" << endl;
@@ -120,9 +241,11 @@ void menu() {
 
 int main()
 {
+    system("chcp 1251 > nul");
+    setlocale(LC_ALL, "Russian");
     Pipe pipe;
     Ks ks;
-    menu();
+    menu(pipe, ks);
     return 0;
 }
 
