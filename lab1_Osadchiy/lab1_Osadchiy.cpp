@@ -23,20 +23,48 @@ struct Ks
     string other; // класс станции
 };
 
+bool isNumber(const string& s) {
+    if (s.empty()) return false;
+
+    size_t start = 0;
+    if (s[0] == '-') {
+        start = 1;
+        if (s.length() == 1) return false;
+    }
+
+    for (size_t i = start; i < s.length(); i++) {
+        if (!isdigit(s[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
 int inputInt() {
+    string numIn;
     int num;
     while (true) {
-        cin >> num;
-        if (cin.fail() or num <= 0) {
+        cin >> numIn;
+        if (isNumber(numIn)) {
+            num = stoi(numIn);
+            if ((cin.fail() or num <= 0)) {
+                cin.clear();
+                cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+                cout << "Ошибка: Введено некорректное значение. Попробуйте снова" << endl;
+                cout << "Ввод: ";
+            }
+            else {
+                cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
+                return num;
+            }
+        }
+        else {
             cin.clear();
             cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
             cout << "Ошибка: Введено некорректное значение. Попробуйте снова" << endl;
             cout << "Ввод: ";
         }
-        else {
-            cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
-            return num;
-        }
+
     }
 }
 
@@ -53,13 +81,11 @@ float inputFloat() {
         else {
             cin.ignore(numeric_limits<std::streamsize>::max(), '\n');
             return num;
-        }
+        } 
     }
 }
 
-Pipe addPipe() {
-    Pipe P;
-
+void addPipe(Pipe& P) {
     cout << "Введите название трубы: ";
     getline(cin, P.name, '\n');
     cout << "Введите длину трубы (в км): ";
@@ -82,12 +108,9 @@ Pipe addPipe() {
             break;
         }
     }
-    
-    return P;
 }
 
-Ks addKs() {
-    Ks K;
+void addKs(Ks& K) {
 
     cout << "Введите название КС: ";
     getline(cin, K.name, '\n');
@@ -104,7 +127,6 @@ Ks addKs() {
     }
     cout << "Введите класс станции (некий показатель, обобщающий различные специфические характеристики): ";
     cin >> K.other;
-    return K;
 }
 
 void showPipe(Pipe& pipe) {
@@ -335,12 +357,12 @@ void saveToFile(const Pipe& pipe, const Ks& ks, const string& filename = "file.t
         file << ks.countWorkshopInWork << endl;
         file << ks.other << endl;
 
-        file.close();
         cout << "Данные были успешно сохранены в файл под названием'" << filename << "'!\n" << endl;
     }
     else {
         cout << "Ошибка в открытии файла для записи!\n" << endl;
     }
+    file.close();
 }
 
 
@@ -379,7 +401,7 @@ bool loadFromFile(Pipe& pipe, Ks& ks, const string& filename = "file.txt") {
         file.ignore(); // пропускаем символ новой строки
         getline(file, ks.other);
 
-        file.close();
+        
         cout << "Данные успешно загружены из файла '" << filename << "'!\n" << endl;
         return true;
     }
@@ -387,6 +409,7 @@ bool loadFromFile(Pipe& pipe, Ks& ks, const string& filename = "file.txt") {
         cout << "Файл '" << filename << "' не найден!\n" << endl;
         return false;
     }
+    file.close();
 }
 
 void menu(Pipe& pipe, Ks& ks) {
@@ -410,7 +433,7 @@ void menu(Pipe& pipe, Ks& ks) {
         switch (number) {
         case 1:
         {
-            pipe = addPipe();
+            addPipe(pipe);
             pipe_existence = true;
             cout << endl;
             cout << "Труба '" << pipe.name << "' была успешно добавлена!\n" << endl;
@@ -418,7 +441,7 @@ void menu(Pipe& pipe, Ks& ks) {
         }
         case 2:
         {
-            ks = addKs();
+            addKs(ks);
             ks_existence = true;
             cout << endl;
             cout << "Компрессорная станция '" << ks.name << "' была успешно добавлена!\n" << endl;
@@ -489,4 +512,3 @@ int main()
     menu(pipe, ks);
     return 0;
 }
-
