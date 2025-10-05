@@ -503,6 +503,7 @@ void menu(Pipe& pipe, Ks& ks) {
     };
 };
 
+
 int main()
 {
     system("chcp 1251 > nul");
